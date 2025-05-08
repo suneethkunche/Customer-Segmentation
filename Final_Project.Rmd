@@ -1,0 +1,176 @@
+---
+title: "Final Project"
+author: "suneeth kunche"
+date: "2025-03-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r install}
+#install.packages("ggplot2")
+#install.packages("dplyr")    
+#install.packages("factoextra")
+#install.packages("glmnet")
+
+
+
+```
+
+
+
+
+```{r Import}
+
+library(ggplot2)
+library(dplyr)
+library(factoextra)
+
+file_path <- "C:/Users/Asus/OneDrive/Desktop/dataset/Mall_Customers.csv"
+
+
+mall_customers <- read.csv(file_path, header = TRUE, stringsAsFactors = FALSE)
+
+
+head(mall_customers)
+
+```
+
+```{r colnames}
+colnames(mall_customers)
+
+```
+
+
+
+```{r barplot}
+ggplot(mall_customers, aes(x = Gender, fill = Gender)) +
+  geom_bar() +
+  labs(title = "Distribution of Male and Female Customers", x = "Gender", y = "count") +
+  theme_minimal()
+
+```
+
+```{r boxplot}
+ggplot(mall_customers, aes(x = Gender, y = Spending.Score..1.100., fill = Gender)) +
+  geom_boxplot() +
+  labs(title = "Spending Score Distribution by Gender", x = "Gender", y = "Spending Score") +
+  theme_minimal()
+
+
+```
+
+
+```{r pca}
+# Load required libraries
+library(ggplot2)
+library(dplyr)
+
+# Select numeric features: Annual Income, Spending Score
+selected_data <- mall_customers %>%
+  select(`Annual.Income..k..`, `Spending.Score..1.100.`)
+
+# Perform PCA on selected features
+pca <- prcomp(selected_data, center = TRUE, scale. = TRUE)
+
+
+summary(pca)
+
+pca_data <- as.data.frame(pca$x)
+
+
+pca_data$Gender <- mall_customers$Gender
+
+# View the new dataset
+head(pca_data)
+
+# Visualize the first two principal components, colored by Gender
+ggplot(pca_data, aes(x = PC1, y = PC2, color = Gender)) +
+  geom_point() +
+  labs(title = "PCA: Annual Income and Spending Score",
+       x = "Principal Component 1",
+       y = "Principal Component 2") +
+  theme_minimal()
+
+
+```
+
+
+
+
+
+
+
+
+```{r elbow}
+# Load required libraries
+library(factoextra)
+library(dplyr)
+
+# Select the relevant features
+clustering_data <- mall_customers %>%
+  select(Annual.Income..k.., Spending.Score..1.100.)
+
+# Scale the data
+scaled_data <- scale(clustering_data)
+
+# Perform PCA
+pca <- prcomp(scaled_data, center = TRUE, scale. = TRUE)
+
+# Create PCA data (scores for the first two principal components)
+pca_data <- as.data.frame(pca$x)
+
+# Elbow method to determine optimal number of clusters on PCA data
+fviz_nbclust(pca_data, kmeans, method = "wss") +
+  labs(title = "Elbow Method for Optimal Clusters (PCA)",
+       x = "Number of Clusters (k)",
+       y = "Total Within-Cluster Sum of Squares")
+
+
+
+```
+
+
+
+
+
+
+
+```{r k-means}
+
+
+set.seed(123)
+k <- 5
+kmeans_result <- kmeans(pca_data, centers = k, nstart = 25)
+
+# Visualize the clusters
+fviz_cluster(kmeans_result, data = scaled_data,
+             geom = "point",
+             ellipse.type = "euclid",
+             palette = "jco",
+             ggtheme = theme_minimal()) +
+  labs(title = paste("K-Means Clustering (k =", k, ")"))
+
+
+```
+
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
